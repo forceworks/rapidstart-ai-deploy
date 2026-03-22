@@ -1,0 +1,33 @@
+{
+  "name": "rapidstart-ai-signal-processor",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "RapidStart AI signal processing backend (Azure Functions)",
+  "main": "dist/src/functions/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "start": "npm run build && func start",
+    "prestart": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0",
+    "@azure/identity": "^4.13.0",
+    "@azure/keyvault-secrets": "^4.10.0",
+    "@azure/service-bus": "^7.9.5",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "applicationinsights": "^3.14.0",
+    "openai": "^6.27.0",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.5",
+    "@types/uuid": "^10.0.0",
+    "azure-functions-core-tools": "^4.x",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

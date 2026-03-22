@@ -1,0 +1,24 @@
+node_modules/
+dist/
+*.js.map
+local.settings.json
+.env
+.env.*
+*.local
+
+# Build output
+services/signal-processor/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Azure Functions
+bin/
+obj/
