@@ -4,9 +4,13 @@ Azure Functions signal processor and infrastructure templates for **RapidStart A
 
 ## What's Included
 
+> **New!** Run `scripts/Setup-RapidStartAI.ps1` to automate Steps 1-6 interactively, or use the [Deploy to Azure](#1-deploy-azure-infrastructure) button for one-click infrastructure setup with a friendly wizard.
+
 | Component | Description |
 |---|---|
 | `infra/bicep/` | Bicep templates for Azure Functions, OpenAI, Service Bus, Key Vault |
+| `infra/deploy/` | ARM template + Azure Portal UI wizard for one-click deploy |
+| `scripts/Setup-RapidStartAI.ps1` | Interactive PowerShell setup script (automates Steps 1-6) |
 | `services/signal-processor/` | Node.js/TypeScript Azure Functions app (Signal Processor) |
 | `docs/deployment-guide.md` | Step-by-step deployment and configuration guide |
 

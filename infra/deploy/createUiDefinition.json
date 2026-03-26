@@ -1,0 +1,108 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+  "handler": "Microsoft.Azure.CreateUIDef",
+  "version": "0.1.2-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "environment",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Environment",
+        "defaultValue": "dev",
+        "toolTip": "Select the deployment environment. This affects resource naming and default configuration (e.g., license tier).",
+        "constraints": {
+          "required": true,
+          "allowedValues": [
+            { "label": "Development", "value": "dev" },
+            { "label": "Staging", "value": "staging" },
+            { "label": "Production", "value": "prod" }
+          ]
+        },
+        "visible": true
+      },
+      {
+        "name": "location",
+        "type": "Microsoft.Common.TextBlock",
+        "visible": false
+      }
+    ],
+    "steps": [
+      {
+        "name": "dataverseConnection",
+        "label": "Dataverse Connection",
+        "elements": [
+          {
+            "name": "dataverseInfo",
+            "type": "Microsoft.Common.InfoBox",
+            "visible": true,
+            "options": {
+              "icon": "Info",
+              "text": "RapidStart AI connects to your Dataverse environment to read and write CRM data. You can find your environment URL in the Power Platform Admin Center under Environments > your environment > Environment URL."
+            }
+          },
+          {
+            "name": "dataverseUrl",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Dataverse Environment URL",
+            "placeholder": "https://yourorg.crm.dynamics.com",
+            "toolTip": "The URL of your Dataverse environment. Find it in the Power Platform Admin Center under Environments > [your environment] > Environment URL.",
+            "constraints": {
+              "required": true,
+              "regex": "^https://.+\\.dynamics\\.com$",
+              "validationMessage": "Must be a valid Dataverse URL starting with https:// and ending with .dynamics.com"
+            },
+            "visible": true
+          }
+        ]
+      },
+      {
+        "name": "identity",
+        "label": "Identity",
+        "elements": [
+          {
+            "name": "identityInfo",
+            "type": "Microsoft.Common.InfoBox",
+            "visible": true,
+            "options": {
+              "icon": "Info",
+              "text": "The Function App uses a system-assigned managed identity by default. An Azure AD App Registration is only needed if you require a specific client credential flow. You can configure this after deployment."
+            }
+          },
+          {
+            "name": "tenantId",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Azure AD Tenant ID",
+            "defaultValue": "[tenant().tenantId]",
+            "toolTip": "Your Azure AD tenant ID. Pre-filled with the current tenant.",
+            "constraints": {
+              "required": true,
+              "regex": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+              "validationMessage": "Must be a valid GUID."
+            },
+            "visible": true
+          },
+          {
+            "name": "aadClientId",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Azure AD Client ID (Optional)",
+            "placeholder": "",
+            "toolTip": "Optional. Provide the Client ID of an existing Azure AD App Registration. Leave blank to use the system-assigned managed identity (recommended).",
+            "constraints": {
+              "required": false,
+              "regex": "^$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+              "validationMessage": "Must be a valid GUID or left blank."
+            },
+            "visible": true
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "environment": "[basics('environment')]",
+      "location": "[location()]",
+      "dataverseUrl": "[steps('dataverseConnection').dataverseUrl]",
+      "tenantId": "[steps('identity').tenantId]",
+      "aadClientId": "[steps('identity').aadClientId]"
+    }
+  }
+}
