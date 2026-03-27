@@ -20,6 +20,12 @@
       "type": "string",
       "defaultValue": "rg-rapidstart-ai",
       "metadata": { "description": "Resource group to create" }
+    },
+    "openaiModel": {
+      "type": "string",
+      "defaultValue": "gpt-4o",
+      "allowedValues": ["gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"],
+      "metadata": { "description": "OpenAI model to deploy for AI features" }
     }
   },
   "variables": {
@@ -166,14 +172,16 @@
         "expressionEvaluationOptions": { "scope": "inner" },
         "parameters": {
           "name": { "value": "[format('oai-{0}', variables('envSuffix'))]" },
-          "location": { "value": "[parameters('location')]" }
+          "location": { "value": "[parameters('location')]" },
+          "modelName": { "value": "[parameters('openaiModel')]" }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "1.0.0.0",
           "parameters": {
             "name": { "type": "string" },
-            "location": { "type": "string" }
+            "location": { "type": "string" },
+            "modelName": { "type": "string" }
           },
           "resources": [
             {
@@ -191,13 +199,12 @@
             {
               "type": "Microsoft.CognitiveServices/accounts/deployments",
               "apiVersion": "2023-10-01-preview",
-              "name": "[format('{0}/{1}', parameters('name'), 'gpt-4o')]",
+              "name": "[format('{0}/{1}', parameters('name'), parameters('modelName'))]",
               "sku": { "name": "Standard", "capacity": 30 },
               "properties": {
                 "model": {
                   "format": "OpenAI",
-                  "name": "gpt-4o",
-                  "version": "2024-08-06"
+                  "name": "[parameters('modelName')]"
                 }
               },
               "dependsOn": [
@@ -207,7 +214,7 @@
           ],
           "outputs": {
             "endpoint": { "type": "string", "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2023-10-01-preview').endpoint]" },
-            "deploymentName": { "type": "string", "value": "gpt-4o" },
+            "deploymentName": { "type": "string", "value": "[parameters('modelName')]" },
             "openaiId": { "type": "string", "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('name'))]" }
           }
         }
@@ -235,6 +242,7 @@
           "keyVaultUri": { "value": "[reference('rsai-keyvault').outputs.vaultUri.value]" },
           "openaiEndpoint": { "value": "[reference('rsai-openai').outputs.endpoint.value]" },
           "openaiDeployment": { "value": "[reference('rsai-openai').outputs.deploymentName.value]" },
+          "openaiModel": { "value": "[parameters('openaiModel')]" },
           "aadClientId": { "value": "" }
         },
         "template": {
@@ -249,6 +257,7 @@
             "keyVaultUri": { "type": "string" },
             "openaiEndpoint": { "type": "string" },
             "openaiDeployment": { "type": "string" },
+            "openaiModel": { "type": "string" },
             "aadClientId": { "type": "string" }
           },
           "variables": {
@@ -309,6 +318,7 @@
                     { "name": "SERVICEBUS_QUEUE_NAME", "value": "signals" },
                     { "name": "OPENAI_ENDPOINT", "value": "[parameters('openaiEndpoint')]" },
                     { "name": "OPENAI_DEPLOYMENT", "value": "[parameters('openaiDeployment')]" },
+                    { "name": "OPENAI_MODEL", "value": "[parameters('openaiModel')]" },
                     { "name": "OPENAI_KEY_SOURCE", "value": "managed-identity" },
                     { "name": "KEY_VAULT_URI", "value": "[parameters('keyVaultUri')]" },
                     { "name": "LICENSE_TIER", "value": "[if(equals(parameters('environment'), 'prod'), 'pro', 'starter')]" },
