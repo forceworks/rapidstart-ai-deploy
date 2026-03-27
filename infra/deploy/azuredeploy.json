@@ -1,116 +1,66 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "metadata": {
-    "_generator": {
-      "name": "bicep",
-      "version": "0.41.2.15936",
-      "templateHash": "6276803509259992139"
-    }
+    "description": "RapidStart AI — subscription-level deployment that auto-creates the resource group"
   },
   "parameters": {
     "environment": {
       "type": "string",
       "defaultValue": "dev",
-      "allowedValues": [
-        "dev",
-        "staging",
-        "prod"
-      ],
-      "metadata": {
-        "description": "Environment name (dev, staging, prod)"
-      }
+      "allowedValues": ["dev", "staging", "prod"],
+      "metadata": { "description": "Environment name (dev, staging, prod)" }
     },
     "location": {
       "type": "string",
-      "defaultValue": "[resourceGroup().location]",
-      "metadata": {
-        "description": "Azure region for all resources"
-      }
+      "defaultValue": "eastus",
+      "metadata": { "description": "Azure region for all resources" }
     },
-    "uniqueSuffix": {
+    "resourceGroupName": {
       "type": "string",
-      "defaultValue": "[uniqueString(resourceGroup().id)]",
-      "metadata": {
-        "description": "Unique suffix for globally unique names"
-      }
-    },
-    "dataverseUrl": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Dataverse environment URL (configure after deployment in AI Settings)"
-      }
-    },
-    "tenantId": {
-      "type": "string",
-      "defaultValue": "[subscription().tenantId]",
-      "metadata": {
-        "description": "Azure AD tenant ID"
-      }
-    },
-    "aadClientId": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Azure AD client ID for managed identity"
-      }
+      "defaultValue": "rg-rapidstart-ai",
+      "metadata": { "description": "Resource group to create" }
     }
   },
   "variables": {
+    "uniqueSuffix": "[uniqueString(subscription().subscriptionId, parameters('resourceGroupName'))]",
     "prefix": "rsai",
-    "envSuffix": "[format('{0}-{1}-{2}', variables('prefix'), parameters('environment'), parameters('uniqueSuffix'))]"
+    "envSuffix": "[format('{0}-{1}-{2}', variables('prefix'), parameters('environment'), variables('uniqueSuffix'))]"
   },
   "resources": [
     {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('resourceGroupName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "solution": "RapidStart AI",
+        "environment": "[parameters('environment')]"
+      }
+    },
+    {
       "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2025-04-01",
-      "name": "keyvault",
+      "apiVersion": "2022-09-01",
+      "name": "rsai-keyvault",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ],
       "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
         "mode": "Incremental",
+        "expressionEvaluationOptions": { "scope": "inner" },
         "parameters": {
-          "name": {
-            "value": "[format('kv-{0}', variables('envSuffix'))]"
-          },
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "tenantId": {
-            "value": "[parameters('tenantId')]"
-          }
+          "name": { "value": "[format('kv-{0}', variables('envSuffix'))]" },
+          "location": { "value": "[parameters('location')]" },
+          "tenantId": { "value": "[subscription().tenantId]" }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_generator": {
-              "name": "bicep",
-              "version": "0.41.2.15936",
-              "templateHash": "9334393006061526820"
-            }
-          },
           "parameters": {
-            "name": {
-              "type": "string",
-              "metadata": {
-                "description": "Key Vault name"
-              }
-            },
-            "location": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure region"
-              }
-            },
-            "tenantId": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure AD tenant ID"
-              }
-            }
+            "name": { "type": "string" },
+            "location": { "type": "string" },
+            "tenantId": { "type": "string" }
           },
           "resources": [
             {
@@ -119,10 +69,7 @@
               "name": "[parameters('name')]",
               "location": "[parameters('location')]",
               "properties": {
-                "sku": {
-                  "family": "A",
-                  "name": "standard"
-                },
+                "sku": { "family": "A", "name": "standard" },
                 "tenantId": "[parameters('tenantId')]",
                 "enableRbacAuthorization": true,
                 "enableSoftDelete": true,
@@ -132,58 +79,33 @@
             }
           ],
           "outputs": {
-            "vaultName": {
-              "type": "string",
-              "value": "[parameters('name')]"
-            },
-            "vaultUri": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('name')), '2023-07-01').vaultUri]"
-            }
+            "vaultName": { "type": "string", "value": "[parameters('name')]" },
+            "vaultUri": { "type": "string", "value": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('name')), '2023-07-01').vaultUri]" }
           }
         }
       }
     },
     {
       "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2025-04-01",
-      "name": "servicebus",
+      "apiVersion": "2022-09-01",
+      "name": "rsai-servicebus",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ],
       "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
         "mode": "Incremental",
+        "expressionEvaluationOptions": { "scope": "inner" },
         "parameters": {
-          "name": {
-            "value": "[format('sb-{0}', variables('envSuffix'))]"
-          },
-          "location": {
-            "value": "[parameters('location')]"
-          }
+          "name": { "value": "[format('sb-{0}', variables('envSuffix'))]" },
+          "location": { "value": "[parameters('location')]" }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_generator": {
-              "name": "bicep",
-              "version": "0.41.2.15936",
-              "templateHash": "10093724120432787256"
-            }
-          },
           "parameters": {
-            "name": {
-              "type": "string",
-              "metadata": {
-                "description": "Service Bus namespace name"
-              }
-            },
-            "location": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure region"
-              }
-            }
+            "name": { "type": "string" },
+            "location": { "type": "string" }
           },
           "resources": [
             {
@@ -191,10 +113,7 @@
               "apiVersion": "2022-10-01-preview",
               "name": "[parameters('name')]",
               "location": "[parameters('location')]",
-              "sku": {
-                "name": "Basic",
-                "tier": "Basic"
-              },
+              "sku": { "name": "Basic", "tier": "Basic" },
               "properties": {}
             },
             {
@@ -217,10 +136,7 @@
               "apiVersion": "2022-10-01-preview",
               "name": "[format('{0}/{1}', parameters('name'), 'FunctionAppAccess')]",
               "properties": {
-                "rights": [
-                  "Listen",
-                  "Send"
-                ]
+                "rights": ["Listen", "Send"]
               },
               "dependsOn": [
                 "[resourceId('Microsoft.ServiceBus/namespaces', parameters('name'))]"
@@ -228,15 +144,9 @@
             }
           ],
           "outputs": {
-            "namespaceName": {
-              "type": "string",
-              "value": "[parameters('name')]"
-            },
+            "namespaceName": { "type": "string", "value": "[parameters('name')]" },
             "connectionString": {
               "type": "string",
-              "metadata": {
-                "description": "Connection string for Function App config — marked secure"
-              },
               "value": "[listKeys(resourceId('Microsoft.ServiceBus/namespaces/AuthorizationRules', parameters('name'), 'FunctionAppAccess'), '2022-10-01-preview').primaryConnectionString]"
             }
           }
@@ -245,44 +155,25 @@
     },
     {
       "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2025-04-01",
-      "name": "openai",
+      "apiVersion": "2022-09-01",
+      "name": "rsai-openai",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ],
       "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
         "mode": "Incremental",
+        "expressionEvaluationOptions": { "scope": "inner" },
         "parameters": {
-          "name": {
-            "value": "[format('oai-{0}', variables('envSuffix'))]"
-          },
-          "location": {
-            "value": "[parameters('location')]"
-          }
+          "name": { "value": "[format('oai-{0}', variables('envSuffix'))]" },
+          "location": { "value": "[parameters('location')]" }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_generator": {
-              "name": "bicep",
-              "version": "0.41.2.15936",
-              "templateHash": "10048778231699109558"
-            }
-          },
           "parameters": {
-            "name": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure OpenAI account name"
-              }
-            },
-            "location": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure region"
-              }
-            }
+            "name": { "type": "string" },
+            "location": { "type": "string" }
           },
           "resources": [
             {
@@ -291,9 +182,7 @@
               "name": "[parameters('name')]",
               "location": "[parameters('location')]",
               "kind": "OpenAI",
-              "sku": {
-                "name": "S0"
-              },
+              "sku": { "name": "S0" },
               "properties": {
                 "customSubDomainName": "[parameters('name')]",
                 "publicNetworkAccess": "Enabled"
@@ -303,10 +192,7 @@
               "type": "Microsoft.CognitiveServices/accounts/deployments",
               "apiVersion": "2023-10-01-preview",
               "name": "[format('{0}/{1}', parameters('name'), 'gpt-4o')]",
-              "sku": {
-                "name": "Standard",
-                "capacity": 30
-              },
+              "sku": { "name": "Standard", "capacity": 30 },
               "properties": {
                 "model": {
                   "format": "OpenAI",
@@ -320,125 +206,50 @@
             }
           ],
           "outputs": {
-            "endpoint": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2023-10-01-preview').endpoint]"
-            },
-            "deploymentName": {
-              "type": "string",
-              "value": "gpt-4o"
-            },
-            "openaiId": {
-              "type": "string",
-              "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('name'))]"
-            }
+            "endpoint": { "type": "string", "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2023-10-01-preview').endpoint]" },
+            "deploymentName": { "type": "string", "value": "gpt-4o" },
+            "openaiId": { "type": "string", "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('name'))]" }
           }
         }
       }
     },
     {
       "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2025-04-01",
-      "name": "functions",
+      "apiVersion": "2022-09-01",
+      "name": "rsai-functions",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "dependsOn": [
+        "rsai-keyvault",
+        "rsai-servicebus",
+        "rsai-openai"
+      ],
       "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
         "mode": "Incremental",
+        "expressionEvaluationOptions": { "scope": "inner" },
         "parameters": {
-          "name": {
-            "value": "[format('func-{0}', variables('envSuffix'))]"
-          },
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "environment": {
-            "value": "[parameters('environment')]"
-          },
-          "dataverseUrl": {
-            "value": "[parameters('dataverseUrl')]"
-          },
-          "serviceBusConnectionString": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'servicebus'), '2025-04-01').outputs.connectionString.value]"
-          },
-          "keyVaultUri": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyvault'), '2025-04-01').outputs.vaultUri.value]"
-          },
-          "openaiEndpoint": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'openai'), '2025-04-01').outputs.endpoint.value]"
-          },
-          "openaiDeployment": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'openai'), '2025-04-01').outputs.deploymentName.value]"
-          },
-          "aadClientId": {
-            "value": "[parameters('aadClientId')]"
-          }
+          "name": { "value": "[format('func-{0}', variables('envSuffix'))]" },
+          "location": { "value": "[parameters('location')]" },
+          "environment": { "value": "[parameters('environment')]" },
+          "dataverseUrl": { "value": "" },
+          "serviceBusConnectionString": { "value": "[reference('rsai-servicebus').outputs.connectionString.value]" },
+          "keyVaultUri": { "value": "[reference('rsai-keyvault').outputs.vaultUri.value]" },
+          "openaiEndpoint": { "value": "[reference('rsai-openai').outputs.endpoint.value]" },
+          "openaiDeployment": { "value": "[reference('rsai-openai').outputs.deploymentName.value]" },
+          "aadClientId": { "value": "" }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_generator": {
-              "name": "bicep",
-              "version": "0.41.2.15936",
-              "templateHash": "4738028415478085385"
-            }
-          },
           "parameters": {
-            "name": {
-              "type": "string",
-              "metadata": {
-                "description": "Function App name"
-              }
-            },
-            "location": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure region"
-              }
-            },
-            "environment": {
-              "type": "string",
-              "metadata": {
-                "description": "Environment (dev/staging/prod)"
-              }
-            },
-            "dataverseUrl": {
-              "type": "string",
-              "metadata": {
-                "description": "Dataverse environment URL"
-              }
-            },
-            "serviceBusConnectionString": {
-              "type": "securestring",
-              "metadata": {
-                "description": "Service Bus connection string"
-              }
-            },
-            "keyVaultUri": {
-              "type": "string",
-              "metadata": {
-                "description": "Key Vault URI"
-              }
-            },
-            "openaiEndpoint": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure OpenAI endpoint"
-              }
-            },
-            "openaiDeployment": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure OpenAI deployment name"
-              }
-            },
-            "aadClientId": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure AD client ID"
-              }
-            }
+            "name": { "type": "string" },
+            "location": { "type": "string" },
+            "environment": { "type": "string" },
+            "dataverseUrl": { "type": "string" },
+            "serviceBusConnectionString": { "type": "securestring" },
+            "keyVaultUri": { "type": "string" },
+            "openaiEndpoint": { "type": "string" },
+            "openaiDeployment": { "type": "string" },
+            "aadClientId": { "type": "string" }
           },
           "variables": {
             "storageName": "[replace(take(format('st{0}', replace(parameters('name'), '-', '')), 24), '-', '')]"
@@ -449,9 +260,7 @@
               "apiVersion": "2023-01-01",
               "name": "[variables('storageName')]",
               "location": "[parameters('location')]",
-              "sku": {
-                "name": "Standard_LRS"
-              },
+              "sku": { "name": "Standard_LRS" },
               "kind": "StorageV2"
             },
             {
@@ -471,13 +280,8 @@
               "name": "[format('plan-{0}', parameters('name'))]",
               "location": "[parameters('location')]",
               "kind": "linux",
-              "sku": {
-                "name": "Y1",
-                "tier": "Dynamic"
-              },
-              "properties": {
-                "reserved": true
-              }
+              "sku": { "name": "Y1", "tier": "Dynamic" },
+              "properties": { "reserved": true }
             },
             {
               "type": "Microsoft.Web/sites",
@@ -485,83 +289,30 @@
               "name": "[parameters('name')]",
               "location": "[parameters('location')]",
               "kind": "functionapp,linux",
-              "identity": {
-                "type": "SystemAssigned"
-              },
+              "identity": { "type": "SystemAssigned" },
               "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('plan-{0}', parameters('name')))]",
                 "httpsOnly": true,
                 "siteConfig": {
                   "linuxFxVersion": "NODE|20",
                   "appSettings": [
-                    {
-                      "name": "AzureWebJobsStorage",
-                      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', variables('storageName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2023-01-01').keys[0].value)]"
-                    },
-                    {
-                      "name": "FUNCTIONS_EXTENSION_VERSION",
-                      "value": "~4"
-                    },
-                    {
-                      "name": "FUNCTIONS_WORKER_RUNTIME",
-                      "value": "node"
-                    },
-                    {
-                      "name": "WEBSITE_RUN_FROM_PACKAGE",
-                      "value": "1"
-                    },
-                    {
-                      "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-                      "value": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('name'))), '2020-02-02').ConnectionString]"
-                    },
-                    {
-                      "name": "DATAVERSE_URL",
-                      "value": "[parameters('dataverseUrl')]"
-                    },
-                    {
-                      "name": "DATAVERSE_TOOL_BASE_URL",
-                      "value": "[format('{0}/api/data/v9.2/', parameters('dataverseUrl'))]"
-                    },
-                    {
-                      "name": "CREDENTIAL_SOURCE",
-                      "value": "managed-identity"
-                    },
-                    {
-                      "name": "AZURE_CLIENT_ID",
-                      "value": "[parameters('aadClientId')]"
-                    },
-                    {
-                      "name": "SERVICEBUS_CONNECTION",
-                      "value": "[parameters('serviceBusConnectionString')]"
-                    },
-                    {
-                      "name": "SERVICEBUS_QUEUE_NAME",
-                      "value": "signals"
-                    },
-                    {
-                      "name": "OPENAI_ENDPOINT",
-                      "value": "[parameters('openaiEndpoint')]"
-                    },
-                    {
-                      "name": "OPENAI_DEPLOYMENT",
-                      "value": "[parameters('openaiDeployment')]"
-                    },
-                    {
-                      "name": "OPENAI_KEY_SOURCE",
-                      "value": "managed-identity"
-                    },
-                    {
-                      "name": "KEY_VAULT_URI",
-                      "value": "[parameters('keyVaultUri')]"
-                    },
-                    {
-                      "name": "LICENSE_TIER",
-                      "value": "[if(equals(parameters('environment'), 'prod'), 'pro', 'starter')]"
-                    },
-                    {
-                      "name": "ENVIRONMENT",
-                      "value": "[parameters('environment')]"
-                    }
+                    { "name": "AzureWebJobsStorage", "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', variables('storageName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2023-01-01').keys[0].value)]" },
+                    { "name": "FUNCTIONS_EXTENSION_VERSION", "value": "~4" },
+                    { "name": "FUNCTIONS_WORKER_RUNTIME", "value": "node" },
+                    { "name": "WEBSITE_RUN_FROM_PACKAGE", "value": "1" },
+                    { "name": "APPLICATIONINSIGHTS_CONNECTION_STRING", "value": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('name'))), '2020-02-02').ConnectionString]" },
+                    { "name": "DATAVERSE_URL", "value": "[parameters('dataverseUrl')]" },
+                    { "name": "DATAVERSE_TOOL_BASE_URL", "value": "[if(empty(parameters('dataverseUrl')), '', format('{0}/api/data/v9.2/', parameters('dataverseUrl')))]" },
+                    { "name": "CREDENTIAL_SOURCE", "value": "managed-identity" },
+                    { "name": "AZURE_CLIENT_ID", "value": "[parameters('aadClientId')]" },
+                    { "name": "SERVICEBUS_CONNECTION", "value": "[parameters('serviceBusConnectionString')]" },
+                    { "name": "SERVICEBUS_QUEUE_NAME", "value": "signals" },
+                    { "name": "OPENAI_ENDPOINT", "value": "[parameters('openaiEndpoint')]" },
+                    { "name": "OPENAI_DEPLOYMENT", "value": "[parameters('openaiDeployment')]" },
+                    { "name": "OPENAI_KEY_SOURCE", "value": "managed-identity" },
+                    { "name": "KEY_VAULT_URI", "value": "[parameters('keyVaultUri')]" },
+                    { "name": "LICENSE_TIER", "value": "[if(equals(parameters('environment'), 'prod'), 'pro', 'starter')]" },
+                    { "name": "ENVIRONMENT", "value": "[parameters('environment')]" }
                   ]
                 }
               },
@@ -573,48 +324,38 @@
             }
           ],
           "outputs": {
-            "functionAppName": {
-              "type": "string",
-              "value": "[parameters('name')]"
-            },
-            "functionAppUrl": {
-              "type": "string",
-              "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', parameters('name')), '2023-01-01').defaultHostName)]"
-            },
-            "principalId": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.Web/sites', parameters('name')), '2023-01-01', 'full').identity.principalId]"
-            }
+            "functionAppName": { "type": "string", "value": "[parameters('name')]" },
+            "functionAppUrl": { "type": "string", "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', parameters('name')), '2023-01-01').defaultHostName)]" },
+            "principalId": { "type": "string", "value": "[reference(resourceId('Microsoft.Web/sites', parameters('name')), '2023-01-01', 'full').identity.principalId]" }
           }
         }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', 'keyvault')]",
-        "[resourceId('Microsoft.Resources/deployments', 'openai')]",
-        "[resourceId('Microsoft.Resources/deployments', 'servicebus')]"
-      ]
+      }
     }
   ],
   "outputs": {
+    "resourceGroupName": {
+      "type": "string",
+      "value": "[parameters('resourceGroupName')]"
+    },
     "functionAppName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'functions'), '2025-04-01').outputs.functionAppName.value]"
+      "value": "[reference('rsai-functions').outputs.functionAppName.value]"
     },
     "functionAppUrl": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'functions'), '2025-04-01').outputs.functionAppUrl.value]"
+      "value": "[reference('rsai-functions').outputs.functionAppUrl.value]"
     },
     "serviceBusNamespace": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'servicebus'), '2025-04-01').outputs.namespaceName.value]"
+      "value": "[reference('rsai-servicebus').outputs.namespaceName.value]"
     },
     "keyVaultName": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyvault'), '2025-04-01').outputs.vaultName.value]"
+      "value": "[reference('rsai-keyvault').outputs.vaultName.value]"
     },
     "openaiEndpoint": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'openai'), '2025-04-01').outputs.endpoint.value]"
+      "value": "[reference('rsai-openai').outputs.endpoint.value]"
     }
   }
 }
