@@ -19,11 +19,6 @@
           ]
         },
         "visible": true
-      },
-      {
-        "name": "location",
-        "type": "Microsoft.Common.TextBlock",
-        "visible": false
       }
     ],
     "steps": [
