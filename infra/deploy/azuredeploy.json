@@ -23,7 +23,7 @@
     }
   },
   "variables": {
-    "uniqueSuffix": "[uniqueString(subscription().subscriptionId, parameters('resourceGroupName'))]",
+    "uniqueSuffix": "[take(uniqueString(subscription().subscriptionId, parameters('resourceGroupName')), 6)]",
     "prefix": "rsai",
     "envSuffix": "[format('{0}-{1}-{2}', variables('prefix'), parameters('environment'), variables('uniqueSuffix'))]"
   },
@@ -50,7 +50,7 @@
         "mode": "Incremental",
         "expressionEvaluationOptions": { "scope": "inner" },
         "parameters": {
-          "name": { "value": "[format('kv-{0}', variables('envSuffix'))]" },
+          "name": { "value": "[take(format('kv-{0}', variables('envSuffix')), 24)]" },
           "location": { "value": "[parameters('location')]" },
           "tenantId": { "value": "[subscription().tenantId]" }
         },
