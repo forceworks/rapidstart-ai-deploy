@@ -26,6 +26,13 @@
       "defaultValue": "gpt-4o",
       "allowedValues": ["gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"],
       "metadata": { "description": "OpenAI model to deploy for AI features" }
+    },
+    "openaiCapacity": {
+      "type": "int",
+      "defaultValue": 30,
+      "minValue": 1,
+      "maxValue": 100,
+      "metadata": { "description": "Tokens-per-minute quota (in thousands) for the OpenAI model deployment. Each environment consumes quota from your subscription's regional limit. Lower this if you're running multiple environments or are near your quota ceiling." }
     }
   },
   "variables": {
@@ -173,7 +180,8 @@
         "parameters": {
           "name": { "value": "[format('oai-{0}', variables('envSuffix'))]" },
           "location": { "value": "[parameters('location')]" },
-          "modelName": { "value": "[parameters('openaiModel')]" }
+          "modelName": { "value": "[parameters('openaiModel')]" },
+          "capacity": { "value": "[parameters('openaiCapacity')]" }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -181,7 +189,8 @@
           "parameters": {
             "name": { "type": "string" },
             "location": { "type": "string" },
-            "modelName": { "type": "string" }
+            "modelName": { "type": "string" },
+            "capacity": { "type": "int" }
           },
           "resources": [
             {
@@ -200,7 +209,7 @@
               "type": "Microsoft.CognitiveServices/accounts/deployments",
               "apiVersion": "2023-10-01-preview",
               "name": "[format('{0}/{1}', parameters('name'), parameters('modelName'))]",
-              "sku": { "name": "Standard", "capacity": 30 },
+              "sku": { "name": "Standard", "capacity": "[parameters('capacity')]" },
               "properties": {
                 "model": {
                   "format": "OpenAI",
