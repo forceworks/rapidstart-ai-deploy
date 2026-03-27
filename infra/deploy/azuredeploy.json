@@ -253,7 +253,7 @@
             "location": { "type": "string" },
             "environment": { "type": "string" },
             "dataverseUrl": { "type": "string" },
-            "serviceBusConnectionString": { "type": "securestring" },
+            "serviceBusConnectionString": { "type": "string" },
             "keyVaultUri": { "type": "string" },
             "openaiEndpoint": { "type": "string" },
             "openaiDeployment": { "type": "string" },
