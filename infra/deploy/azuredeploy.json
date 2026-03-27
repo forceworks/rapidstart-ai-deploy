@@ -37,8 +37,9 @@
     },
     "dataverseUrl": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
-        "description": "Dataverse environment URL"
+        "description": "Dataverse environment URL (configure after deployment in AI Settings)"
       }
     },
     "tenantId": {
