@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Signing in...</title>
+  <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js"></script>
+</head>
+<body>
+  <p style="font-family:'Segoe UI',sans-serif;color:#666;text-align:center;padding:40px;">
+    Signing in&hellip; this window will close automatically.
+  </p>
+  <script>
+    var msalConfig = {
+      auth: {
+        clientId: '55624904-58a3-4acd-b74e-dcb69d6120dc',
+        authority: 'https://login.microsoftonline.com/common',
+        redirectUri: 'https://forceworks.github.io/rapidstart-ai-deploy/auth-callback.html'
+      },
+      cache: { cacheLocation: 'localStorage' }
+    };
+
+    var msalInstance = new msal.PublicClientApplication(msalConfig);
+
+    msalInstance.handleRedirectPromise().then(function(result) {
+      if (result && result.accessToken) {
+        sendToOpener(result.accessToken, result.account);
+      } else {
+        msalInstance.loginRedirect({
+          scopes: ['https://management.azure.com/user_impersonation']
+        });
+      }
+    }).catch(function(e) {
+      sendError(e.message);
+    });
+
+    function sendToOpener(token, account) {
+      var msg = {
+        type: 'rapidstart-azure-auth',
+        token: token,
+        username: account ? account.username : '',
+        tenantId: account ? account.tenantId : ''
+      };
+      if (window.opener) {
+        window.opener.postMessage(msg, '*');
+        window.close();
+      } else {
+        document.body.innerHTML = '<p style="font-family:Segoe UI,sans-serif;color:#2563eb;text-align:center;padding:40px;">Authentication successful! You can close this window.</p>';
+      }
+    }
+
+    function sendError(message) {
+      if (window.opener) {
+        window.opener.postMessage({ type: 'rapidstart-azure-auth', error: message }, '*');
+      }
+      document.body.innerHTML = '<p style="font-family:Segoe UI,sans-serif;color:#991b1b;text-align:center;padding:40px;">Authentication failed: ' + message + '</p>';
+    }
+  </script>
+</body>
+</html>
