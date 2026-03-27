@@ -26,7 +26,7 @@ Azure Functions signal processor and infrastructure templates for **RapidStart A
 
 ### 1. Deploy Azure Infrastructure
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fforceworks%2Frapidstart-ai-deploy%2Fmain%2Finfra%2Fbicep%2Fmain.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fforceworks%2Frapidstart-ai-deploy%2Fmain%2Finfra%2Fdeploy%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fforceworks%2Frapidstart-ai-deploy%2Fmain%2Finfra%2Fdeploy%2FcreateUiDefinition.json)
 
 Or deploy via CLI:
 

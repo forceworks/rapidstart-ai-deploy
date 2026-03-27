@@ -1,6 +1,6 @@
 # RapidStart AI — Deploy to Azure
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fforceworks%2Frapidstart-ai-deploy%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fforceworks%2Frapidstart-ai-deploy%2Fmain%2FcreateUiDefinition.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fforceworks%2Frapidstart-ai-deploy%2Fmain%2Finfra%2Fdeploy%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fforceworks%2Frapidstart-ai-deploy%2Fmain%2Finfra%2Fdeploy%2FcreateUiDefinition.json)
 
 One-click deployment of the RapidStart AI Azure backend for Dynamics 365 / Dataverse.
 
