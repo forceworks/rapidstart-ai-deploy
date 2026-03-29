@@ -313,6 +313,9 @@
                 "httpsOnly": true,
                 "siteConfig": {
                   "linuxFxVersion": "NODE|20",
+                  "cors": {
+                    "allowedOrigins": ["*"]
+                  },
                   "appSettings": [
                     { "name": "AzureWebJobsStorage", "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', variables('storageName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2023-01-01').keys[0].value)]" },
                     { "name": "FUNCTIONS_EXTENSION_VERSION", "value": "~4" },
